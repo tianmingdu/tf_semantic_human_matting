@@ -22,4 +22,4 @@ python3/python predict.py
 
 
 ## Introduction
-This repository is a tensorflow version for 'Semantic Human Matting'. https://arxiv.org/pdf/1809.01354.pdf
+This repository is a tensorflow version for 'Semantic Human Matting' which has some difference from original paper( https://arxiv.org/pdf/1809.01354.pdf ). The main difference of this code is using simple CNN instead of resnet for the pspnet base due to the limitation of GPU.

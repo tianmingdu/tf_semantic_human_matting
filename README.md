@@ -22,4 +22,4 @@ python3/python predict.py
 
 
 ## Introduction
-This repository is a tensorflow version for 'Semantic Human Matting'. 
+This repository is a tensorflow version for 'Semantic Human Matting'. https://arxiv.org/pdf/1809.01354.pdf

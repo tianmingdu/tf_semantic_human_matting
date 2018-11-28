@@ -1,6 +1,7 @@
 # tf_semantic_human_matting
 
 Usage:
+
 1.Clone the repository:
 git clone https://github.com/tianmingdu/tf_semantic_human_matting.git
 

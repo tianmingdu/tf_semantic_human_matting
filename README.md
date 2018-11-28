@@ -19,3 +19,7 @@ python3/python train.py
 python3/python export_inference_graph.py
 
 python3/python predict.py
+
+
+## Introduction
+This repository is a tensorflow version for 'Semantic Human Matting'. 

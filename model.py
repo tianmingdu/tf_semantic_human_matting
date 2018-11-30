@@ -19,7 +19,7 @@ class Model(object):
 
     def __init__(self, is_training,
                  default_image_size=640,
-                 alpha_loss_weight=100,
+                 alpha_loss_weight=10,
                  first_stage_image_loss_weight=0.5,
                  second_stage_alpha_loss_weight=0.5,
                  trimap_loss_weight=0.01):
@@ -139,24 +139,26 @@ class Model(object):
         net_image = slim.conv2d(net_image, num_outputs=4, kernel_size=3,
                                 padding='SAME', scope='psp_conv2')
         net_image = slim.batch_norm(net_image, is_training=self._is_training)
-        # pyramid_pooling
+        # pyramid scence pooling
         pool1 = self.pyramid_pooling(net_image, (60, 60), 64, scope='pyramid_pooling1')
         pool2 = self.pyramid_pooling(net_image, (30, 30), 64, scope='pyramid_pooling2')
-        pool3 = self.pyramid_pooling(net_image, (10, 10), 64, scope='pyramid_pooling3')
+        pool3 = self.pyramid_pooling(net_image, (20, 20), 64, scope='pyramid_pooling3')
+        pool4 = self.pyramid_pooling(net_image, (10, 10), 64, scope='pyramid_pooling4')
 
-        net_image = tf.concat(values=[net_image, pool1, pool2, pool3], axis=3)
+        net_image = tf.concat(values=[net_image, pool1, pool2, pool3, pool4], axis=3)
         net_image = slim.batch_norm(net_image, is_training=self._is_training)
         pred_trimap = slim.conv2d(net_image, num_outputs=3, kernel_size=3,
                                   padding='SAME', scope='psp_conv3')
+        pred_trimap_soft = tf.nn.softmax(pred_trimap, axis=3)
         # background_trimap = tf.slice(pred_trimap, [0, 0, 0, 0], [-1, -1, -1, 1])
         # foreground_trimap = tf.slice(pred_trimap, [0, 0, 0, 1], [-1, -1, -1, 1])
         # unsure_trimap = tf.slice(pred_trimap, [0, 0, 0, 2], [-1, -1, -1, 1])
         background = tf.slice(pred_trimap, [0, 0, 0, 0], [-1, -1, -1, 1])
-        background_trimap = tf.nn.sigmoid(background)
+        background_trimap = tf.slice(pred_trimap_soft, [0, 0, 0, 0], [-1, -1, -1, 1])
         foreground = tf.slice(pred_trimap, [0, 0, 0, 1], [-1, -1, -1, 1])
-        foreground_trimap = tf.nn.sigmoid(foreground)
+        foreground_trimap = tf.slice(pred_trimap_soft, [0, 0, 0, 1], [-1, -1, -1, 1])
         unsure = tf.slice(pred_trimap, [0, 0, 0, 2], [-1, -1, -1, 1])
-        unsure_trimap = tf.nn.sigmoid(unsure)
+        unsure_trimap = tf.slice(pred_trimap_soft, [0, 0, 0, 2], [-1, -1, -1, 1])
 
         # net_image_trimap = tf.concat(values=[preprocessed_images_fg, pred_trimap], axis=3)
         # VGG-16
@@ -318,9 +320,10 @@ class Model(object):
 
         # trimap_losses = tf.sqrt(tf.square(pred_trimaps - gt_trimaps) + epsilon)
         # trimap_losses = tf.reduce_mean(trimap_losses)
-        l1 = tf.losses.sigmoid_cross_entropy(gt_alpha_matte, foreground)
-        l2 = tf.losses.sigmoid_cross_entropy(1 - gt_alpha_matte, background)
-        trimap_losses = (l1 + l2) / 2.
+
+        trimap_losses = tf.losses.softmax_cross_entropy(
+            tf.concat([gt_alpha_matte, 1 - gt_alpha_matte], axis=3),
+            tf.concat([foreground, background], axis=3))
         alpha_losses = tf.sqrt(tf.square(alpha_matte_p - gt_alpha_matte) + epsilon)
         alpha_losses = tf.reduce_mean(alpha_losses)
 

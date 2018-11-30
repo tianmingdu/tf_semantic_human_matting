@@ -2,7 +2,7 @@
 """
 Created on Thu Oct 11 11:49:09 2018
 
-@author: shirhe-lyh
+@author: tianming
 """
 
 import os

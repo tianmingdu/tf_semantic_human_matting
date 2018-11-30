@@ -1,10 +1,5 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Created on Fri Mar 30 15:46:16 2018
-
-@author: shirhe-lyh
-"""
 
 """Tool to export a model for inference.
 

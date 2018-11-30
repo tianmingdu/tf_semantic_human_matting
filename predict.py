@@ -2,7 +2,7 @@
 """
 Created on Tue Nov 13 16:25:17 2018
 
-@author: shirhe-lyh
+@author: tianming
 """
 
 import cv2

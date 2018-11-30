@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-Created on Sat Nov 10 16:38:23 2018
+Created on Sat Nov 19 16:38:24 2018
 
-@author: shirhe-lyh
+@author: tianming
 """
 
 import os
@@ -15,7 +15,7 @@ slim = tf.contrib.slim
 flags = tf.app.flags
 
 flags.DEFINE_string('record_path', 
-                    './datasets/train.record',
+                    './datasets/train_dress_bg.record',
                     'Path to training tfrecord file.')
 flags.DEFINE_string('checkpoint_path', 
                     '/data1/model_zoo/vgg_16.ckpt', 
@@ -209,6 +209,9 @@ def main(_):
     tf.summary.scalar('trimap_losses', trimap_losses)
     tf.summary.scalar('alpha_losses', alpha_losses)
     tf.summary.scalar('composition_losses', composition_losses)
+    tf.summary.image('background_trimap', 255 * prediction_dict['background_trimap'], max_outputs=7)
+    tf.summary.image('foreground_trimap', 255 * prediction_dict['foreground_trimap'], max_outputs=7)
+    tf.summary.image('unsure_trimap', 255 * prediction_dict['unsure_trimap'], max_outputs=7)
     tf.summary.image('gt_alpha_mattes', 255 * alpha_mattes, max_outputs=7)
     postprocessed_dict = cls_model.postprocess(prediction_dict, preprocessed_dict)
     for key, value in postprocessed_dict.items():

@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-Created on Thu Nov  8 11:11:59 2018
+Created on Thu Nov  22 12:11:59 2018
 
-@author: shirhe-lyh
+@author: tianming
 """
 
 import tensorflow as tf
@@ -18,7 +18,7 @@ class Model(object):
     """xxx definition."""
 
     def __init__(self, is_training,
-                 default_image_size=320,
+                 default_image_size=640,
                  alpha_loss_weight=100,
                  first_stage_image_loss_weight=0.5,
                  second_stage_alpha_loss_weight=0.5,
@@ -133,7 +133,6 @@ class Model(object):
         """
         preprocessed_images_fg = preprocessed_dict.get('images_fg')
 
-        # TODO PSPnet (now a simple cnn)
         net_image = slim.conv2d(preprocessed_images_fg, num_outputs=5, kernel_size=3,
                                 padding='SAME', scope='psp_conv1')
         net_image = slim.batch_norm(net_image, is_training=self._is_training)
@@ -141,9 +140,9 @@ class Model(object):
                                 padding='SAME', scope='psp_conv2')
         net_image = slim.batch_norm(net_image, is_training=self._is_training)
         # pyramid_pooling
-        pool1 = self.pyramid_pooling(net_image, (60, 60), 64, scope='pyramid_pool1')
-        pool2 = self.pyramid_pooling(net_image, (30, 30), 64, scope='pyramid_pool2')
-        pool3 = self.pyramid_pooling(net_image, (10, 10), 64, scope='pyramid_pool3')
+        pool1 = self.pyramid_pooling(net_image, (60, 60), 64, scope='pyramid_pooling1')
+        pool2 = self.pyramid_pooling(net_image, (30, 30), 64, scope='pyramid_pooling2')
+        pool3 = self.pyramid_pooling(net_image, (10, 10), 64, scope='pyramid_pooling3')
 
         net_image = tf.concat(values=[net_image, pool1, pool2, pool3], axis=3)
         net_image = slim.batch_norm(net_image, is_training=self._is_training)
@@ -168,8 +167,9 @@ class Model(object):
         # Note: The `padding` method of fc6 of VGG-16 in tf.contrib.slim is
         # `VALID`, but the expected value is `SAME`, so we must replace it.
         net_image = endpoints.get('vgg_16/pool5')
-        net_image = slim.conv2d(net_image, num_outputs=4096, kernel_size=7,
-                                padding='SAME', scope='fc6_')
+        net_image = slim.batch_norm(net_image, is_training=self._is_training)
+        # net_image = slim.conv2d(net_image, num_outputs=4096, kernel_size=7,
+        #                         padding='SAME', scope='fc6_')
 
         # VGG-16 for alpha channel
         net_alpha = slim.repeat(pred_trimap, 2, slim.conv2d, 64,
@@ -191,14 +191,14 @@ class Model(object):
                                 scope='conv5_alpha')
         net_alpha = slim.batch_norm(net_alpha, is_training=self._is_training)
         net_alpha = slim.max_pool2d(net_alpha, [2, 2], scope='pool5_alpha')
-        net_alpha = slim.conv2d(net_alpha, 4096, [7, 7], padding='SAME',
-                                scope='fc6_alpha')
+        # net_alpha = slim.conv2d(net_alpha, 4096, [7, 7], padding='SAME',
+        #                         scope='fc6_alpha')
         net_alpha = slim.batch_norm(net_alpha, is_training=self._is_training)
 
         # Concate the first stage prediction
         net = tf.concat(values=[net_image, net_alpha], axis=3)
         net.set_shape([None, self._default_image_size // 32,
-                       self._default_image_size // 32, 8192])
+                       self._default_image_size // 32, 1024])
 
         # Deconvlution
         with slim.arg_scope([slim.conv2d_transpose], stride=2, kernel_size=5):
@@ -231,7 +231,11 @@ class Model(object):
                            'alpha_matte_p': alpha_matte_p,
                            'pred_trimap': pred_trimap,
                            'background': background,
-                           'foreground': foreground}
+                           'foreground': foreground,
+                           'background_trimap': background_trimap,
+                           'foreground_trimap': foreground_trimap,
+                           'unsure_trimap': unsure_trimap,
+                           }
         return prediction_dict
 
     def postprocess(self, prediction_dict, preprocessed_dict=None, use_trimap=True):

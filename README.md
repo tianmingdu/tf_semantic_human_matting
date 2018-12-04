@@ -6,19 +6,23 @@
 
 git clone https://github.com/tianmingdu/tf_semantic_human_matting.git
 
-### 2.prepare your own data:
+### 2.generate tool data or prepare your own data:
 
-python3/python generate_tfrecord.py
+cd dataset
+
+python alpha_trimap_from_fg.py 
+
+python generate_tfrecord.py
 
 ### 3.train your own model:
 
-python3/python train.py
+python train.py
 
 ### 4.Evaluation:
 
-python3/python export_inference_graph.py
+python export_inference_graph.py
 
-python3/python predict.py
+python predict.py
 
 
 ## Introduction

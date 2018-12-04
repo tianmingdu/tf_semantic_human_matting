@@ -6,7 +6,7 @@
 
 git clone https://github.com/tianmingdu/tf_semantic_human_matting.git
 
-### 2.generate tool data or prepare your own data:
+### 2.generate tool data or prepare your own data(just adding foreground and background images to dataset/fg_images and dataset/bg_images respectively):
 
 cd dataset
 
